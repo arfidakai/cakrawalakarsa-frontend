@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-size: 16px;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: #ffffff;
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: #ececf0;
+    --muted-foreground: #717182;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --input-background: #f3f3f5;
+    --switch-background: #cbced4;
+    --font-weight-medium: 500;
+    --font-weight-normal: 400;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.625rem;
+    
+    /* DEMA Cakrawala Custom Colors */
+    --dema-neutral: #5F5E5E;
+    --dema-green: #2F563B;
+    --dema-blue: #166CB2;
+    --dema-orange: #EE8A34;
+    --dema-yellow: #FDD100;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-['Plus_Jakarta_Sans'];
+  }
+  
+  h1 {
+    @apply text-2xl font-medium;
+  }
+  h2 {
+    @apply text-xl font-medium;
+  }
+  h3 {
+    @apply text-lg font-medium;
+  }
+}
+
+html {
+  font-size: 16px;
+}
