@@ -25,7 +25,7 @@ export function Navbar() {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <Image 
-              src="/images/logo.jpg" 
+              src="/images/logo.png" 
               alt="DEMA Cakrawala Logo" 
               width={150} 
               height={200}
