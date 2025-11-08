@@ -24,9 +24,9 @@ export function Hero() {
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-        <div className="inline-block mb-4 px-4 py-2 bg-[#FDD100] rounded-full">
+        {/* <div className="inline-block mb-4 px-4 py-2 bg-[#FDD100] rounded-full">
           <span className="text-[#2F563B]">Periode 2025/2026</span>
-        </div>
+        </div> */}
         
         <h1 className="text-5xl md:text-7xl mb-6 text-[#2F563B]" style={{ fontWeight: 800 }}>
           DEMA Kabinet
@@ -57,11 +57,11 @@ export function Hero() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="mt-16 animate-bounce">
+        {/* <div className="mt-16 animate-bounce">
           <div className="w-6 h-10 border-2 border-[#5F5E5E]/30 rounded-full mx-auto flex items-start justify-center p-2">
             <div className="w-1.5 h-1.5 bg-[#166CB2] rounded-full"></div>
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   );

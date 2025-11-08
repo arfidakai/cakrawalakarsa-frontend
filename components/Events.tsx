@@ -1,9 +1,13 @@
+"use client";
+
 import Image from "next/image";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Calendar, MapPin, ArrowRight } from "lucide-react";
+import { useScrollAnimation } from "../hooks/useScrollAnimation";
 
 export function Events() {
+  const { ref, isVisible } = useScrollAnimation();
   const events = [
     {
       title: "Workshop Digital Marketing",
@@ -36,10 +40,15 @@ export function Events() {
   ];
 
   return (
-    <section className="py-20 px-4 bg-white">
+    <section id="events" className="py-20 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
-        <div className="text-center mb-16">
+        <div 
+          ref={ref}
+          className={`text-center mb-16 transition-all duration-1000 ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}
+        >
           <div className="inline-block px-4 py-2 bg-[#EE8A34]/10 rounded-full mb-4">
             <span className="text-[#EE8A34]">Kegiatan Unggulan</span>
           </div>
@@ -56,7 +65,12 @@ export function Events() {
           {events.map((event, index) => (
             <Card 
               key={index}
-              className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-none rounded-2xl group"
+              className={`overflow-hidden hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border-none rounded-2xl group ${
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+              }`}
+              style={{ 
+                transitionDelay: `${index * 100}ms`
+              }}
             >
               <div className="relative h-48 overflow-hidden">
                 <Image
