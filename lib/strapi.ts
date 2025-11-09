@@ -14,6 +14,7 @@ interface StrapiResponse<T> {
     };
   };
 }
+
 export async function fetchAPI<T>(
   path: string,
   options: RequestInit = {}
@@ -27,7 +28,7 @@ export async function fetchAPI<T>(
         'Content-Type': 'application/json',
         ...options.headers,
       },
-      next: { revalidate: 60 }, // cache data 60 detik
+      next: { revalidate: 60 },
     });
 
     if (!response.ok) {
@@ -41,11 +42,12 @@ export async function fetchAPI<T>(
   }
 }
 
-// === Helper Functions ==
+// === Helper Functions ===
 
 export async function getNews() {
   return fetchAPI('/news?populate=*');
 }
+
 export async function getDivisions() {
   try {
     const res = await fetch(`${STRAPI_URL}/api/bidangs?populate=*`, {
@@ -62,7 +64,6 @@ export async function getDivisions() {
       return { data: [] };
     }
 
-    // Return langsung dengan mapping sederhana
     return {
       data: json.data.map((item: any) => ({
         id: item.id,
@@ -80,5 +81,45 @@ export async function getDivisions() {
     return { data: [] };
   }
 }
+
+export async function getGallery() {
+  try {
+    const res = await fetch(`${STRAPI_URL}/api/dokumentasis?populate=*`, {
+      next: { revalidate: 60 },
+    });
+
+    if (!res.ok) {
+      console.error(`Failed to fetch gallery: ${res.status}`);
+      return { data: [] };
+    }
+
+    const json = await res.json();
+
+    console.log('Gallery Response:', JSON.stringify(json, null, 2));
+
+    if (!json.data || !Array.isArray(json.data)) {
+      return { data: [] };
+    }
+
+    return {
+      data: json.data.map((item: any) => ({
+        id: item.id,
+        judul: item.judul,
+        tanggal: item.tanggal,
+        keterangan: item.keterangan,
+        gambar: item.gambar ? {
+          url: item.gambar.url,
+          formats: item.gambar.formats,
+          alternativeText: item.gambar.alternativeText,
+        } : null,
+      })),
+    };
+  } catch (error) {
+    console.error('Error fetching gallery:', error);
+    return { data: [] };
+  }
+}
+
+
 
 

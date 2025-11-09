@@ -46,7 +46,7 @@ export async function Divisions() {
     // Pass data ke client component
     return <DivisionsClient divisions={divisions} />;
   } catch (error) {
-    console.error("Error fetching divisions:", error);
+    // console.error("Error fetching divisions:", error);
 
     return (
       <section className="py-20 px-4 bg-white">

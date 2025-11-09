@@ -42,8 +42,8 @@ export function DivisionsClient({ divisions }: DivisionsClientProps) {
   const [selectedDivision, setSelectedDivision] = useState<Bidang | null>(null);
   
   // Debug log
-  console.log("Divisions received:", divisions);
-  console.log("First division program_kerjas:", divisions[0]?.program_kerjas);
+  // console.log("Divisions received:", divisions);
+  // console.log("First division program_kerjas:", divisions[0]?.program_kerjas);
 
   return (
     <section className="py-20 px-4 bg-white">
