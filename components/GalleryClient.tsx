@@ -17,20 +17,34 @@ interface GalleryImage {
 
 interface GalleryClientProps {
   images: GalleryImage[];
+  strapiUrl: string; // ✅ Terima dari server component
 }
 
-export function GalleryClient({ images }: GalleryClientProps) {
+export function GalleryClient({ images, strapiUrl }: GalleryClientProps) {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
 
-  // ✅ Ambil STRAPI_URL langsung dari env public
-  const STRAPI_URL =
-    process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
+  // Fallback images jika Strapi kosong
+  const fallbackImages: any[] = [
+    {
+      id: 1,
+      judul: "Workshop Kolaborasi",
+      url: "https://images.unsplash.com/photo-1758270705482-cee87ea98738?w=1080",
+      keterangan: "Kegiatan workshop mahasiswa",
+      tanggal: "2025-11-09",
+    },
+    {
+      id: 2,
+      judul: "Presentasi Event",
+      url: "https://images.unsplash.com/photo-1660795308754-4c6422baf2f6?w=1080",
+      keterangan: "Presentasi event kampus",
+      tanggal: "2025-11-09",
+    },
+  ];
 
-  // ✅ Gunakan data yang dikirim dari server, tanpa fallback di client
-  const displayImages = images;
+  const displayImages = images.length > 0 ? images : fallbackImages;
 
   return (
-    <section key={images.length} className="py-20 px-4 bg-white">
+    <section className="py-20 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
@@ -51,8 +65,9 @@ export function GalleryClient({ images }: GalleryClientProps) {
         {/* Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {displayImages.map((image) => {
-            // ✅ URL sudah di-prebuild di server (getGallery)
-            const imageUrl = image.gambar?.url || "/placeholder.jpg";
+            const imageUrl = image.gambar?.url
+              ? `${strapiUrl}${image.gambar.url}`
+              : image.url || "/placeholder.jpg";
 
             return (
               <div
@@ -65,7 +80,7 @@ export function GalleryClient({ images }: GalleryClientProps) {
                   alt={image.gambar?.alternativeText || image.judul}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  unoptimized // sementara matikan optimizer untuk pastikan tampil
+                  unoptimized={!image.gambar}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#2F563B]/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
                   <div>
@@ -87,11 +102,14 @@ export function GalleryClient({ images }: GalleryClientProps) {
         >
           <div className="relative max-w-4xl w-full aspect-video">
             <Image
-              src={selectedImage.gambar?.url || "/placeholder.jpg"}
+              src={selectedImage.gambar?.url
+                ? `${strapiUrl}${selectedImage.gambar.url}`
+                : (selectedImage as any).url || "/placeholder.jpg"
+              }
               alt={selectedImage.judul}
               fill
               className="object-contain"
-              unoptimized
+              unoptimized={!selectedImage.gambar}
             />
           </div>
         </div>
