@@ -120,6 +120,84 @@ export async function getGallery() {
   }
 }
 
+export async function getPengurus() {
+  try {
+    const res = await fetch(`${STRAPI_URL}
+/api/leaderships?populate=*&sort=urutan:asc`, {
+      next: { revalidate: 60 },
+    });
+
+    if (!res.ok) {
+      return { data: [] };
+    }
+
+    const json = await res.json();
+
+    return {
+      data: json.data.map((item: any) => ({
+        id: item.id,
+        nama: item.nama,
+        posisi: item.posisi,
+        initial: item.initial,
+        warna: item.warna,
+        foto: item.foto ? {
+          url: item.foto.url,
+        } : null,
+        bio: item.bio,
+        email: item.email,
+        instagram: item.instagram,
+      })),
+    };
+  } catch (error) {
+    console.error('Error fetching pengurus:', error);
+    return { data: [] };
+  }
+}
+
+export async function getLeadership() {
+  try {
+    const res = await fetch(`${STRAPI_URL}/api/leaderships?populate=*&sort=urutan:asc`, {
+      next: { revalidate: 60 },
+    });
+
+    if (!res.ok) {
+      return { data: [] };
+    }
+
+    const json = await res.json();
+
+    console.log('Leadership API Response:', JSON.stringify(json, null, 2)); // Debug log
+
+    if (!json.data || !Array.isArray(json.data)) {
+      return { data: [] };
+    }
+
+    return {
+      data: json.data.map((item: any) => ({
+        id: item.id,
+        nama: item.nama,
+        posisi: item.posisi,
+        initial: item.initial || item.nama.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase(), 
+        warna: item.warna || '#166CB2', 
+        foto: item.image ? {
+          url: item.image.url,
+          alternativeText: item.image.alternativeText,
+          formats: item.image.formats,
+        } : null,
+        bio: item.bio,
+        email: item.email,
+        instagram: item.instagram,
+        linkedin: item.linkedin,
+        urutan: item.urutan,
+        periode: item.periode,
+      })),
+    };
+  } catch (error) {
+    console.error('Error fetching leadership:', error);
+    return { data: [] };
+  }
+}
+
 
 
 
