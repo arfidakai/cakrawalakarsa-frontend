@@ -1,35 +1,55 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { ArrowRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { leadershipStorage, type LeaderItem } from '@/lib/storage'
 
 export function Leadership() {
-  const leaders = [
+  const [leaders, setLeaders] = useState<LeaderItem[]>([])
+
+  useEffect(() => {
+    // Get top 4 leaders from localStorage
+    const allLeaders = leadershipStorage.getAll()
+    setLeaders(allLeaders.slice(0, 4))
+  }, [])
+
+  // Fallback data if no leaders in localStorage
+  const fallbackLeaders = [
     {
+      id: 1,
       name: "Ahmad Rizki",
       position: "Ketua DEMA",
-      initial: "AR",
-      color: "#166CB2"
+      image: "",
+      createdAt: ""
     },
     {
+      id: 2,
       name: "Siti Nurhaliza",
       position: "Wakil Ketua",
-      initial: "SN",
-      color: "#2F563B"
+      image: "",
+      createdAt: ""
     },
     {
+      id: 3,
       name: "Budi Santoso",
       position: "Sekretaris Umum",
-      initial: "BS",
-      color: "#EE8A34"
+      image: "",
+      createdAt: ""
     },
     {
+      id: 4,
       name: "Diana Putri",
       position: "Bendahara Umum",
-      initial: "DP",
-      color: "#FDD100"
+      image: "",
+      createdAt: ""
     }
-  ];
+  ]
+
+  const displayLeaders = leaders.length > 0 ? leaders : fallbackLeaders
+  const colors = ["#166CB2", "#2F563B", "#EE8A34", "#FDD100"]
 
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-[#2F563B]/5 to-white">
@@ -49,25 +69,30 @@ export function Leadership() {
 
         {/* Leadership grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {leaders.map((leader, index) => (
-            <Card 
-              key={index}
-              className="p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-none bg-white rounded-2xl text-center"
-            >
-              <Avatar className="w-24 h-24 mx-auto mb-4 border-4" style={{ borderColor: leader.color }}>
-                <AvatarImage src="" />
-                <AvatarFallback style={{ backgroundColor: `${leader.color}20`, color: leader.color }}>
-                  {leader.initial}
-                </AvatarFallback>
-              </Avatar>
-              <h3 className="text-xl mb-2 text-[#2F563B]" style={{ fontWeight: 700 }}>
-                {leader.name}
-              </h3>
-              <p className="text-[#5F5E5E]">
-                {leader.position}
-              </p>
-            </Card>
-          ))}
+          {displayLeaders.map((leader, index) => {
+            const color = colors[index % colors.length]
+            const initials = leader.name.split(' ').map(n => n[0]).join('').toUpperCase()
+            
+            return (
+              <Card 
+                key={leader.id || index}
+                className="p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-none bg-white rounded-2xl text-center"
+              >
+                <Avatar className="w-24 h-24 mx-auto mb-4 border-4" style={{ borderColor: color }}>
+                  <AvatarImage src={leader.image} alt={leader.name} />
+                  <AvatarFallback style={{ backgroundColor: `${color}20`, color: color }}>
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <h3 className="text-xl mb-2 text-[#2F563B]" style={{ fontWeight: 700 }}>
+                  {leader.name}
+                </h3>
+                <p className="text-[#5F5E5E]">
+                  {leader.position}
+                </p>
+              </Card>
+            )
+          })}
         </div>
 
         {/* CTA Button */}
