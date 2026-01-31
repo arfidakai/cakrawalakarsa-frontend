@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from 'react'
 import { Card } from "./ui/card";
 import { 
   Megaphone, 
@@ -9,46 +10,92 @@ import {
   Briefcase,
   Heart
 } from "lucide-react";
+import { divisionsStorage, type DivisionItem } from '@/lib/storage'
 
 export function Divisions() {
-  const divisions = [
+  const [divisions, setDivisions] = useState<DivisionItem[]>([])
+
+  useEffect(() => {
+    // Get all divisions from localStorage
+    const allDivisions = divisionsStorage.getAll()
+    setDivisions(allDivisions)
+  }, [])
+
+  // Icon mapping for divisions
+  const iconMap: { [key: string]: any } = {
+    'advokasi': Megaphone,
+    'sdm': Users,
+    'media': Newspaper,
+    'kaderisasi': Calendar,
+    'wirausaha': Briefcase,
+    'sosial': Heart,
+  }
+
+  const getIconForDivision = (name: string) => {
+    const nameLower = name.toLowerCase()
+    if (nameLower.includes('advokasi') || nameLower.includes('kesejahteraan')) return Megaphone
+    if (nameLower.includes('sdm') || nameLower.includes('pengembangan')) return Users
+    if (nameLower.includes('media') || nameLower.includes('informasi')) return Newspaper
+    if (nameLower.includes('kaderisasi')) return Calendar
+    if (nameLower.includes('wirausaha') || nameLower.includes('usaha')) return Briefcase
+    if (nameLower.includes('sosial') || nameLower.includes('lingkungan')) return Heart
+    return Briefcase // default
+  }
+
+  // Fallback data if no divisions in localStorage
+  const fallbackDivisions = [
     {
-      icon: Megaphone,
+      id: 1,
       name: "Advokasi & Kesejahteraan",
       description: "Menyuarakan aspirasi mahasiswa",
-      color: "#166CB2"
+      members: [],
+      head: "",
+      createdAt: ""
     },
     {
-      icon: Users,
+      id: 2,
       name: "Pengembangan SDM",
       description: "Pelatihan dan pengembangan kompetensi",
-      color: "#2F563B"
+      members: [],
+      head: "",
+      createdAt: ""
     },
     {
-      icon: Newspaper,
+      id: 3,
       name: "Media & Informasi",
       description: "Publikasi dan dokumentasi kegiatan",
-      color: "#EE8A34"
+      members: [],
+      head: "",
+      createdAt: ""
     },
     {
-      icon: Calendar,
+      id: 4,
       name: "Kaderisasi",
       description: "Regenerasi dan pembinaan anggota",
-      color: "#FDD100"
+      members: [],
+      head: "",
+      createdAt: ""
     },
     {
-      icon: Briefcase,
+      id: 5,
       name: "Kewirausahaan",
       description: "Mengembangkan jiwa entrepreneur",
-      color: "#166CB2"
+      members: [],
+      head: "",
+      createdAt: ""
     },
     {
-      icon: Heart,
+      id: 6,
       name: "Sosial & Lingkungan",
       description: "Kepedulian sosial dan kelestarian",
-      color: "#2F563B"
+      members: [],
+      head: "",
+      createdAt: ""
     }
-  ];
+  ]
+
+  const displayDivisions = divisions.length > 0 ? divisions : fallbackDivisions
+  const colors = ["#166CB2", "#2F563B", "#EE8A34", "#FDD100", "#166CB2", "#2F563B"]
 
   return (
     <section className="py-20 px-4 bg-white">
@@ -68,11 +115,13 @@ export function Divisions() {
 
         {/* Divisions grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {divisions.map((division, index) => {
-            const Icon = division.icon;
+          {displayDivisions.map((division, index) => {
+            const Icon = getIconForDivision(division.name)
+            const color = colors[index % colors.length]
+            
             return (
               <Card 
-                key={index}
+                key={division.id || index}
                 className="p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-none bg-white rounded-2xl group cursor-pointer"
                 style={{
                   transition: 'all 0.3s ease'
@@ -94,9 +143,9 @@ export function Divisions() {
               >
                 <div 
                   className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-300"
-                  style={{ backgroundColor: `${division.color}20` }}
+                  style={{ backgroundColor: `${color}20` }}
                 >
-                  <Icon className="w-8 h-8 transition-colors duration-300" style={{ color: division.color }} />
+                  <Icon className="w-8 h-8 transition-colors duration-300" style={{ color: color }} />
                 </div>
                 <h3 className="division-title text-xl mb-3 text-[#2F563B] transition-colors duration-300" style={{ fontWeight: 700 }}>
                   {division.name}

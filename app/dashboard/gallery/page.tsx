@@ -1,59 +1,39 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { DeleteConfirmDialog } from '@/components/dashboard/DeleteConfirmDialog'
-import { Plus, Search, Trash2, Upload } from 'lucide-react'
-import Image from 'next/image'
-
-const mockGallery = [
-  {
-    id: 1,
-    url: '/images/event1.jpg',
-    title: 'Workshop 2026',
-    date: '2026-01-20',
-  },
-  {
-    id: 2,
-    url: '/images/event2.jpg',
-    title: 'Team Building',
-    date: '2026-01-15',
-  },
-  {
-    id: 3,
-    url: '/images/event3.jpg',
-    title: 'Annual Gathering',
-    date: '2026-01-10',
-  },
-  {
-    id: 4,
-    url: '/images/event4.jpg',
-    title: 'Seminar',
-    date: '2026-01-05',
-  },
-  {
-    id: 5,
-    url: '/images/event5.jpg',
-    title: 'Bakti Sosial',
-    date: '2025-12-20',
-  },
-  {
-    id: 6,
-    url: '/images/event6.jpg',
-    title: 'Rapat Divisi',
-    date: '2025-12-15',
-  },
-]
+import { Plus, Search, Trash2, Upload, X } from 'lucide-react'
+import { galleryStorage, fileToBase64, type GalleryItem } from '@/lib/storage'
 
 export default function GalleryPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedImages, setSelectedImages] = useState<number[]>([])
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showUploadDialog, setShowUploadDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [gallery, setGallery] = useState<GalleryItem[]>([])
+  const [uploadForm, setUploadForm] = useState({
+    title: '',
+    files: [] as File[],
+  })
 
-  const filteredGallery = mockGallery.filter((item) =>
+  useEffect(() => {
+    setGallery(galleryStorage.getAll())
+  }, [])
+
+  const filteredGallery = gallery.filter((item) =>
     item.title.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -65,12 +45,54 @@ export default function GalleryPage() {
 
   const handleDelete = async () => {
     setDeleting(true)
-    setTimeout(() => {
-      console.log('Deleting images:', selectedImages)
-      setDeleting(false)
-      setShowDeleteDialog(false)
+    const success = galleryStorage.delete(selectedImages)
+    
+    if (success) {
+      setGallery(galleryStorage.getAll())
       setSelectedImages([])
-    }, 1000)
+    }
+    
+    setDeleting(false)
+    setShowDeleteDialog(false)
+  }
+
+  const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setUploadForm({
+        ...uploadForm,
+        files: Array.from(e.target.files),
+      })
+    }
+  }
+
+  const handleUpload = async () => {
+    if (uploadForm.files.length === 0) {
+      alert('Please select at least one image')
+      return
+    }
+
+    setUploading(true)
+
+    try {
+      for (const file of uploadForm.files) {
+        const base64 = await fileToBase64(file)
+        
+        galleryStorage.create({
+          url: base64,
+          title: uploadForm.title || file.name.replace(/\.[^/.]+$/, ''),
+          date: new Date().toISOString().split('T')[0],
+        })
+      }
+
+      setGallery(galleryStorage.getAll())
+      setShowUploadDialog(false)
+      setUploadForm({ title: '', files: [] })
+    } catch (error) {
+      console.error('Error uploading images:', error)
+      alert('Failed to upload images')
+    } finally {
+      setUploading(false)
+    }
   }
 
   return (
@@ -80,7 +102,7 @@ export default function GalleryPage() {
           <h1 className="text-3xl font-bold text-gray-900">Gallery Management</h1>
           <p className="text-gray-500 mt-1">Manage all gallery images</p>
         </div>
-        <Button>
+        <Button onClick={() => setShowUploadDialog(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Upload Images
         </Button>
@@ -123,9 +145,11 @@ export default function GalleryPage() {
               onClick={() => toggleImageSelection(item.id)}
             >
               <div className="aspect-square bg-gray-100 relative">
-                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                  <Upload className="w-12 h-12" />
-                </div>
+                <img
+                  src={item.url}
+                  alt={item.title}
+                  className="w-full h-full object-cover"
+                />
                 {selectedImages.includes(item.id) && (
                   <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
                     <svg
@@ -151,13 +175,81 @@ export default function GalleryPage() {
         </div>
       </div>
 
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Upload Images</DialogTitle>
+            <DialogDescription>
+              Upload one or multiple images to the gallery
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title (Optional)</Label>
+              <Input
+                id="title"
+                placeholder="Enter title for all images..."
+                value={uploadForm.title}
+                onChange={(e) =>
+                  setUploadForm({ ...uploadForm, title: e.target.value })
+                }
+              />
+              <p className="text-xs text-gray-500">
+                If empty, file names will be used
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="images">Select Images</Label>
+              <Input
+                id="images"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFilesChange}
+              />
+              {uploadForm.files.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  <p className="text-sm font-medium">
+                    {uploadForm.files.length} file(s) selected:
+                  </p>
+                  {uploadForm.files.map((file, index) => (
+                    <p key={index} className="text-xs text-gray-600">
+                      • {file.name}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowUploadDialog(false)
+                  setUploadForm({ title: '', files: [] })
+                }}
+                disabled={uploading}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleUpload} disabled={uploading}>
+                {uploading ? 'Uploading...' : 'Upload'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <DeleteConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         onConfirm={handleDelete}
         loading={deleting}
-        title={`Delete ${selectedImages.length} Image(s)`}
-        description={`Are you sure you want to delete ${selectedImages.length} selected image(s)? This action cannot be undone.`}
+        title="Delete Selected Images"
+        description={`Are you sure you want to delete ${selectedImages.length} image(s)? This action cannot be undone.`}
       />
     </div>
   )

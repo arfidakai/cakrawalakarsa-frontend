@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -18,46 +19,38 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DeleteConfirmDialog } from '@/components/dashboard/DeleteConfirmDialog'
 import { Plus, Search, MoreVertical, Edit, Trash2, Users } from 'lucide-react'
-
-
-const mockDivisions = [
-  {
-    id: 1,
-    name: 'Public Relations',
-    description: 'Handle external communications and media',
-    members: 12,
-    head: 'Sarah Wilson',
-  },
-  {
-    id: 2,
-    name: 'Finance',
-    description: 'Manage financial operations',
-    members: 8,
-    head: 'Michael Chen',
-  },
-  {
-    id: 3,
-    name: 'Human Resources',
-    description: 'Employee management and development',
-    members: 10,
-    head: 'Emily Brown',
-  },
-  {
-    id: 4,
-    name: 'IT & Technology',
-    description: 'Technical infrastructure and support',
-    members: 15,
-    head: 'David Lee',
-  },
-]
+import { divisionsStorage, type DivisionItem } from '@/lib/storage'
 
 export default function DivisionsPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
+  const [divisions, setDivisions] = useState<DivisionItem[]>([])
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
-  const filteredDivisions = mockDivisions.filter((division) =>
+  useEffect(() => {
+    setDivisions(divisionsStorage.getAll())
+  }, [])
+
+  const filteredDivisions = divisions.filter((division) =>
     division.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  const handleDelete = async () => {
+    if (!deleteId) return
+
+    setDeleting(true)
+    const success = divisionsStorage.delete(deleteId)
+    
+    if (success) {
+      setDivisions(divisionsStorage.getAll())
+    }
+    
+    setDeleting(false)
+    setDeleteId(null)
+  }
 
   return (
     <div className="space-y-6">
@@ -66,10 +59,12 @@ export default function DivisionsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Divisions Management</h1>
           <p className="text-gray-500 mt-1">Manage organizational divisions</p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Division
-        </Button>
+        <Link href="/dashboard/divisions/create">
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Division
+          </Button>
+        </Link>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -107,7 +102,7 @@ export default function DivisionsPage() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-gray-400" />
-                    {division.members}
+                    {division.members.length}
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
@@ -118,15 +113,14 @@ export default function DivisionsPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => router.push(`/dashboard/divisions/${division.id}/edit`)}>
                         <Edit className="w-4 h-4 mr-2" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Users className="w-4 h-4 mr-2" />
-                        View Members
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
+                      <DropdownMenuItem 
+                        className="text-red-600"
+                        onClick={() => setDeleteId(division.id)}
+                      >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete
                       </DropdownMenuItem>
@@ -138,6 +132,15 @@ export default function DivisionsPage() {
           </TableBody>
         </Table>
       </div>
+
+      <DeleteConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete Division"
+        description="Are you sure you want to delete this division? This action cannot be undone."
+      />
     </div>
   )
 }

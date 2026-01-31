@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,50 +21,34 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { DeleteConfirmDialog } from '@/components/dashboard/DeleteConfirmDialog'
 import { Plus, Search, MoreVertical, Eye, Edit, Trash2, Calendar as CalendarIcon } from 'lucide-react'
-
-const mockEvents = [
-  {
-    id: 1,
-    title: 'Workshop Leadership 2026',
-    date: '2026-02-15',
-    location: 'Jakarta Convention Center',
-    status: 'upcoming',
-    attendees: 150,
-  },
-  {
-    id: 2,
-    title: 'Annual Gathering',
-    date: '2026-03-20',
-    location: 'Bali',
-    status: 'upcoming',
-    attendees: 200,
-  },
-  {
-    id: 3,
-    title: 'Seminar Kewirausahaan',
-    date: '2026-01-10',
-    location: 'Online',
-    status: 'completed',
-    attendees: 300,
-  },
-]
+import { eventsStorage, type EventItem } from '@/lib/storage'
 
 export default function EventsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [events, setEvents] = useState<EventItem[]>([])
 
-  const filteredEvents = mockEvents.filter((event) =>
+  useEffect(() => {
+    setEvents(eventsStorage.getAll())
+  }, [])
+
+  const filteredEvents = events.filter((event) =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const handleDelete = async () => {
+    if (!deleteId) return
+    
     setDeleting(true)
-    setTimeout(() => {
-      console.log('Deleting event:', deleteId)
-      setDeleting(false)
-      setDeleteId(null)
-    }, 1000)
+    const success = eventsStorage.delete(deleteId)
+    
+    if (success) {
+      setEvents(eventsStorage.getAll())
+    }
+    
+    setDeleting(false)
+    setDeleteId(null)
   }
 
   return (

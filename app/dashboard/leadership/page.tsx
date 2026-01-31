@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -18,41 +19,40 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { DeleteConfirmDialog } from '@/components/dashboard/DeleteConfirmDialog'
 import { Plus, Search, MoreVertical, Edit, Trash2, Mail, Phone } from 'lucide-react'
-
-
-const mockLeadership = [
-  {
-    id: 1,
-    name: 'John Doe',
-    position: 'Ketua Umum',
-    email: 'john@cakrawalakarsa.com',
-    phone: '+62 812-3456-7890',
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    position: 'Wakil Ketua',
-    email: 'jane@cakrawalakarsa.com',
-    phone: '+62 812-3456-7891',
-  },
-  {
-    id: 3,
-    name: 'Bob Johnson',
-    position: 'Sekretaris',
-    email: 'bob@cakrawalakarsa.com',
-    phone: '+62 812-3456-7892',
-  },
-]
+import { leadershipStorage, type LeaderItem } from '@/lib/storage'
 
 export default function LeadershipPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
+  const [leaders, setLeaders] = useState<LeaderItem[]>([])
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
-  const filteredLeadership = mockLeadership.filter((member) =>
+  useEffect(() => {
+    setLeaders(leadershipStorage.getAll())
+  }, [])
+
+  const filteredLeadership = leaders.filter((member) =>
     member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     member.position.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  const handleDelete = async () => {
+    if (!deleteId) return
+
+    setDeleting(true)
+    const success = leadershipStorage.delete(deleteId)
+    
+    if (success) {
+      setLeaders(leadershipStorage.getAll())
+    }
+    
+    setDeleting(false)
+    setDeleteId(null)
+  }
 
   return (
     <div className="space-y-6">
@@ -61,10 +61,12 @@ export default function LeadershipPage() {
           <h1 className="text-3xl font-bold text-gray-900">Leadership Management</h1>
           <p className="text-gray-500 mt-1">Manage leadership team members</p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Member
-        </Button>
+        <Link href="/dashboard/leadership/create">
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Member
+          </Button>
+        </Link>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -96,6 +98,7 @@ export default function LeadershipPage() {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar>
+                      <AvatarImage src={member.image} alt={member.name} />
                       <AvatarFallback>
                         {member.name.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
@@ -106,14 +109,18 @@ export default function LeadershipPage() {
                 <TableCell>{member.position}</TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail className="w-3 h-3 text-gray-400" />
-                      {member.email}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone className="w-3 h-3 text-gray-400" />
-                      {member.phone}
-                    </div>
+                    {member.email && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Mail className="w-3 h-3 text-gray-400" />
+                        {member.email}
+                      </div>
+                    )}
+                    {member.phone && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="w-3 h-3 text-gray-400" />
+                        {member.phone}
+                      </div>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
@@ -124,11 +131,14 @@ export default function LeadershipPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => router.push(`/dashboard/leadership/${member.id}/edit`)}>
                         <Edit className="w-4 h-4 mr-2" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
+                      <DropdownMenuItem 
+                        className="text-red-600"
+                        onClick={() => setDeleteId(member.id)}
+                      >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete
                       </DropdownMenuItem>
@@ -140,6 +150,15 @@ export default function LeadershipPage() {
           </TableBody>
         </Table>
       </div>
+
+      <DeleteConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete Leader"
+        description="Are you sure you want to delete this leader? This action cannot be undone."
+      />
     </div>
   )
 }

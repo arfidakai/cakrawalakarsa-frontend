@@ -14,22 +14,48 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Upload } from 'lucide-react'
+import { ImageUpload } from '@/components/dashboard/ImageUpload'
+import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { newsStorage, fileToBase64 } from '@/lib/storage'
 
 export default function CreateNewsPage() {
   const router = useRouter()
+  const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    status: 'draft',
+    status: 'draft' as 'draft' | 'published',
     image: null as File | null,
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Form submitted:', formData)
-    router.push('/dashboard/news')
+    setSaving(true)
+
+    try {
+      let imageBase64 = undefined
+      
+      if (formData.image) {
+        imageBase64 = await fileToBase64(formData.image)
+      }
+
+      newsStorage.create({
+        title: formData.title,
+        content: formData.content,
+        author: 'Admin',
+        date: new Date().toISOString().split('T')[0],
+        status: formData.status,
+        image: imageBase64,
+      })
+
+      router.push('/dashboard/news')
+    } catch (error) {
+      console.error('Error creating news:', error)
+      alert('Failed to create news')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -94,7 +120,7 @@ export default function CreateNewsPage() {
                   <Label htmlFor="status">Status</Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(value) =>
+                    onValueChange={(value: 'draft' | 'published') =>
                       setFormData({ ...formData, status: value })
                     }
                   >
@@ -115,37 +141,20 @@ export default function CreateNewsPage() {
                 <CardTitle>Featured Image</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm text-gray-600">
-                    Click to upload or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    PNG, JPG up to 10MB
-                  </p>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        image: e.target.files?.[0] || null,
-                      })
-                    }
-                  />
-                </div>
+                <ImageUpload
+                  onChange={(file) => setFormData({ ...formData, image: file })}
+                />
               </CardContent>
             </Card>
 
             <div className="flex gap-3">
               <Link href="/dashboard/news" className="flex-1">
-                <Button type="button" variant="outline" className="w-full">
+                <Button type="button" variant="outline" className="w-full" disabled={saving}>
                   Cancel
                 </Button>
               </Link>
-              <Button type="submit" className="flex-1">
-                Publish
+              <Button type="submit" className="flex-1" disabled={saving}>
+                {saving ? 'Publishing...' : 'Publish'}
               </Button>
             </div>
           </div>

@@ -7,11 +7,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Upload, Calendar as CalendarIcon, MapPin } from 'lucide-react'
+import { ImageUpload } from '@/components/dashboard/ImageUpload'
+import { ArrowLeft, Calendar as CalendarIcon, MapPin } from 'lucide-react'
 import Link from 'next/link'
+import { eventsStorage, fileToBase64 } from '@/lib/storage'
 
 export default function CreateEventPage() {
   const router = useRouter()
+  const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -21,10 +24,34 @@ export default function CreateEventPage() {
     image: null as File | null,
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Event created:', formData)
-    router.push('/dashboard/events')
+    setSaving(true)
+
+    try {
+      let imageBase64 = undefined
+      
+      if (formData.image) {
+        imageBase64 = await fileToBase64(formData.image)
+      }
+
+      eventsStorage.create({
+        title: formData.title,
+        description: formData.description,
+        date: formData.date,
+        location: formData.location,
+        maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees) : undefined,
+        status: 'upcoming',
+        image: imageBase64,
+      })
+
+      router.push('/dashboard/events')
+    } catch (error) {
+      console.error('Error creating event:', error)
+      alert('Failed to create event')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -134,37 +161,20 @@ export default function CreateEventPage() {
                 <CardTitle>Event Image</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm text-gray-600">
-                    Click to upload or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    PNG, JPG up to 10MB
-                  </p>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        image: e.target.files?.[0] || null,
-                      })
-                    }
-                  />
-                </div>
+                <ImageUpload
+                  onChange={(file) => setFormData({ ...formData, image: file })}
+                />
               </CardContent>
             </Card>
 
             <div className="flex gap-3">
               <Link href="/dashboard/events" className="flex-1">
-                <Button type="button" variant="outline" className="w-full">
+                <Button type="button" variant="outline" className="w-full" disabled={saving}>
                   Cancel
                 </Button>
               </Link>
-              <Button type="submit" className="flex-1">
-                Create Event
+              <Button type="submit" className="flex-1" disabled={saving}>
+                {saving ? 'Creating...' : 'Create Event'}
               </Button>
             </div>
           </div>

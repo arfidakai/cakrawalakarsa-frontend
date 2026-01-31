@@ -14,8 +14,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Upload, Loader2 } from 'lucide-react'
+import { ImageUpload } from '@/components/dashboard/ImageUpload'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { newsStorage, fileToBase64 } from '@/lib/storage'
 
 export default function EditNewsPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -24,35 +26,52 @@ export default function EditNewsPage({ params }: { params: { id: string } }) {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    status: 'draft',
+    status: 'draft' as 'draft' | 'published',
     image: null as File | null,
     currentImage: '',
   })
 
   useEffect(() => {
-    const fetchNews = async () => {
+    const newsId = parseInt(params.id)
+    const news = newsStorage.getById(newsId)
+    
+    if (news) {
       setFormData({
-        title: 'Sample News Article',
-        content: 'This is the content of the news article...',
-        status: 'published',
+        title: news.title,
+        content: news.content,
+        status: news.status,
         image: null,
-        currentImage: '/images/news1.jpg',
+        currentImage: news.image || '',
       })
-      setLoading(false)
     }
-    fetchNews()
+    setLoading(false)
   }, [params.id])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Updating news:', params.id, formData)
-      setSaving(false)
+    try {
+      let imageBase64 = formData.currentImage
+      
+      if (formData.image) {
+        imageBase64 = await fileToBase64(formData.image)
+      }
+
+      newsStorage.update(parseInt(params.id), {
+        title: formData.title,
+        content: formData.content,
+        status: formData.status,
+        image: imageBase64,
+      })
+
       router.push('/dashboard/news')
-    }, 1000)
+    } catch (error) {
+      console.error('Error updating news:', error)
+      alert('Failed to update news')
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (loading) {
@@ -125,7 +144,7 @@ export default function EditNewsPage({ params }: { params: { id: string } }) {
                   <Label htmlFor="status">Status</Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(value) =>
+                    onValueChange={(value: 'draft' | 'published') =>
                       setFormData({ ...formData, status: value })
                     }
                   >
@@ -145,34 +164,11 @@ export default function EditNewsPage({ params }: { params: { id: string } }) {
               <CardHeader>
                 <CardTitle>Featured Image</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {formData.currentImage && !formData.image && (
-                  <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                      Current Image
-                    </div>
-                  </div>
-                )}
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm text-gray-600">
-                    Click to upload new image
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    PNG, JPG up to 10MB
-                  </p>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        image: e.target.files?.[0] || null,
-                      })
-                    }
-                  />
-                </div>
+              <CardContent>
+                <ImageUpload
+                  value={formData.currentImage}
+                  onChange={(file) => setFormData({ ...formData, image: file })}
+                />
               </CardContent>
             </Card>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,52 +21,35 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { DeleteConfirmDialog } from '@/components/dashboard/DeleteConfirmDialog'
 import { Plus, Search, MoreVertical, Eye, Edit, Trash2 } from 'lucide-react'
-
-const mockNews = [
-  {
-    id: 1,
-    title: 'Kegiatan Bakti Sosial 2026',
-    author: 'Admin',
-    date: '2026-01-25',
-    status: 'published',
-    views: 245,
-  },
-  {
-    id: 2,
-    title: 'Workshop Leadership Development',
-    author: 'Admin',
-    date: '2026-01-20',
-    status: 'published',
-    views: 189,
-  },
-  {
-    id: 3,
-    title: 'Rapat Koordinasi Divisi',
-    author: 'Admin',
-    date: '2026-01-15',
-    status: 'draft',
-    views: 0,
-  },
-]
+import { newsStorage, type NewsItem } from '@/lib/storage'
 
 export default function NewsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [news, setNews] = useState<NewsItem[]>([])
 
-  const filteredNews = mockNews.filter((news) =>
-    news.title.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    // Load news from storage
+    setNews(newsStorage.getAll())
+  }, [])
+
+  const filteredNews = news.filter((item) =>
+    item.title.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const handleDelete = async () => {
+    if (!deleteId) return
+    
     setDeleting(true)
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Deleting news:', deleteId)
-      setDeleting(false)
-      setDeleteId(null)
-      // TODO: Refresh data
-    }, 1000)
+    const success = newsStorage.delete(deleteId)
+    
+    if (success) {
+      setNews(newsStorage.getAll())
+    }
+    
+    setDeleting(false)
+    setDeleteId(null)
   }
 
   return (
