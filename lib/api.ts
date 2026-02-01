@@ -1,4 +1,3 @@
-// API Service using Supabase
 import { supabase } from './supabase';
 
 // News API

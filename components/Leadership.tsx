@@ -54,7 +54,6 @@ export function Leadership() {
       </section>
     );
   }
-
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-[#2F563B]/5 to-white">
       <div className="max-w-7xl mx-auto">

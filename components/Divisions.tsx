@@ -62,7 +62,6 @@ export function Divisions() {
       </section>
     );
   }
-
   return (
     <section className="py-20 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
@@ -113,6 +112,7 @@ export function Divisions() {
                   >
                     <IconComponent className="w-8 h-8 transition-colors duration-300" style={{ color: color }} />
                   </div>
+
                 <h3 className="division-title text-xl mb-3 text-[#2F563B] transition-colors duration-300" style={{ fontWeight: 700 }}>
                   {division.name}
                 </h3>

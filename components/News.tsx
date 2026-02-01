@@ -60,6 +60,7 @@ export function News() {
         </div>
       </section>
     );
+
   }
 
   return (
@@ -96,7 +97,11 @@ export function News() {
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-[#166CB2] to-[#2F563B] flex items-center justify-center">
+<<<<<<< HEAD
                       <span className="text-white text-4xl">📰</span>
+=======
+                      <span className="text-white text-4xl opacity-20">📰</span>
+>>>>>>> 360d7c20b6409aff798a65b9f9eb6f4daadc7e1e
                     </div>
                   )}
                   <div className="absolute top-4 left-4">
@@ -114,7 +119,11 @@ export function News() {
                     {article.title}
                   </h3>
                   <p className="text-[#5F5E5E] line-clamp-3 mb-4">
+<<<<<<< HEAD
                     {getExcerpt(article.content)}
+=======
+                    {article.content}
+>>>>>>> 360d7c20b6409aff798a65b9f9eb6f4daadc7e1e
                   </p>
                   <button className="text-[#166CB2] hover:text-[#EE8A34] transition-colors flex items-center gap-1 group/link">
                     Baca selengkapnya
@@ -125,7 +134,11 @@ export function News() {
             ))
           ) : (
             <div className="col-span-3 text-center py-12">
+<<<<<<< HEAD
               <p className="text-[#5F5E5E]">Belum ada berita tersedia</p>
+=======
+              <p className="text-[#5F5E5E]">Belum ada berita yang dipublikasikan</p>
+>>>>>>> 360d7c20b6409aff798a65b9f9eb6f4daadc7e1e
             </div>
           )}
         </div>
