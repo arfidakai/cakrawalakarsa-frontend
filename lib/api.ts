@@ -287,17 +287,24 @@ export const divisionsApi = {
 
 // Auth API (using Supabase Auth)
 export const authApi = {
-  login: async (credentials: { username: string; password: string }) => {
-    // Using email-based auth (you can change username to email in the form)
+  login: async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: credentials.username, // or create a custom auth flow
-      password: credentials.password,
+      email,
+      password,
     });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Login error:', error);
+      return { success: false, error: error.message };
+    }
+    
+    if (!data.session) {
+      return { success: false, error: 'No session created' };
+    }
     
     return {
-      token: data.session?.access_token || '',
+      success: true,
+      token: data.session.access_token,
       user: data.user,
     };
   },
