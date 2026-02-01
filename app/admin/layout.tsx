@@ -13,7 +13,6 @@ import {
   Menu
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/components/ui/utils';
 import { useState } from 'react';
 
@@ -81,7 +80,7 @@ export default function AdminLayout({
           </div>
 
           {/* Navigation */}
-          <ScrollArea className="flex-1 px-3 py-4">
+          <div className="flex-1 px-3 py-4 overflow-y-auto">
             <nav className="space-y-1">
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
@@ -106,7 +105,7 @@ export default function AdminLayout({
                 );
               })}
             </nav>
-          </ScrollArea>
+          </div>
 
           {/* Logout Button */}
           <div className="border-t p-4">
