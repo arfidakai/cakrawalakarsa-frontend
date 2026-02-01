@@ -1,35 +1,59 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { ArrowRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { leadershipApi } from '@/lib/api';
+
+interface Leader {
+  id: string;
+  name: string;
+  position: string;
+  photo: string;
+  order: number;
+}
 
 export function Leadership() {
-  const leaders = [
-    {
-      name: "Ahmad Rizki",
-      position: "Ketua DEMA",
-      initial: "AR",
-      color: "#166CB2"
-    },
-    {
-      name: "Siti Nurhaliza",
-      position: "Wakil Ketua",
-      initial: "SN",
-      color: "#2F563B"
-    },
-    {
-      name: "Budi Santoso",
-      position: "Sekretaris Umum",
-      initial: "BS",
-      color: "#EE8A34"
-    },
-    {
-      name: "Diana Putri",
-      position: "Bendahara Umum",
-      initial: "DP",
-      color: "#FDD100"
-    }
-  ];
+  const [leaders, setLeaders] = useState<Leader[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const colors = ["#166CB2", "#2F563B", "#EE8A34", "#FDD100"];
+
+  useEffect(() => {
+    const fetchLeadership = async () => {
+      try {
+        const data = await leadershipApi.getAll();
+        setLeaders(data.slice(0, 4)); // Ambil 4 pengurus teratas
+      } catch (error) {
+        console.error('Failed to fetch leadership:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeadership();
+  }, []);
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  if (loading) {
+    return (
+      <section className="py-20 px-4 bg-gradient-to-b from-[#2F563B]/5 to-white">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-[#5F5E5E]">Memuat struktur kepemimpinan...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-[#2F563B]/5 to-white">
@@ -49,25 +73,34 @@ export function Leadership() {
 
         {/* Leadership grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {leaders.map((leader, index) => (
-            <Card 
-              key={index}
-              className="p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-none bg-white rounded-2xl text-center"
-            >
-              <Avatar className="w-24 h-24 mx-auto mb-4 border-4" style={{ borderColor: leader.color }}>
-                <AvatarImage src="" />
-                <AvatarFallback style={{ backgroundColor: `${leader.color}20`, color: leader.color }}>
-                  {leader.initial}
-                </AvatarFallback>
-              </Avatar>
-              <h3 className="text-xl mb-2 text-[#2F563B]" style={{ fontWeight: 700 }}>
-                {leader.name}
-              </h3>
-              <p className="text-[#5F5E5E]">
-                {leader.position}
-              </p>
-            </Card>
-          ))}
+          {leaders.length > 0 ? (
+            leaders.map((leader, index) => {
+              const color = colors[index % colors.length];
+              return (
+                <Card 
+                  key={leader.id}
+                  className="p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-none bg-white rounded-2xl text-center"
+                >
+                  <Avatar className="w-24 h-24 mx-auto mb-4 border-4" style={{ borderColor: color }}>
+                    <AvatarImage src={leader.photo || ''} />
+                    <AvatarFallback style={{ backgroundColor: `${color}20`, color: color }}>
+                      {getInitials(leader.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h3 className="text-xl mb-2 text-[#2F563B]" style={{ fontWeight: 700 }}>
+                    {leader.name}
+                  </h3>
+                  <p className="text-[#5F5E5E]">
+                    {leader.position}
+                  </p>
+                </Card>
+              );
+            })
+          ) : (
+            <div className="col-span-4 text-center py-12">
+              <p className="text-[#5F5E5E]">Belum ada data pengurus tersedia</p>
+            </div>
+          )}
         </div>
 
         {/* CTA Button */}
