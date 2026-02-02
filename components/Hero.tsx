@@ -1,8 +1,19 @@
+"use client";
+
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { ArrowRight } from "lucide-react";
 
 export function Hero() {
+  const scrollToSection = (href: string) => {
+    const element = document.querySelector(href);
+    if (element) {
+      const offset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+    }
+  };
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background with sunrise gradient */}
@@ -41,6 +52,7 @@ export function Hero() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button 
             size="lg"
+            onClick={() => scrollToSection("#about")}
             className="bg-[#166CB2] hover:bg-[#166CB2]/90 text-white rounded-xl px-8 py-6 shadow-lg"
           >
             Kenali Kami
@@ -50,6 +62,7 @@ export function Hero() {
           <Button 
             size="lg"
             variant="outline"
+            onClick={() => scrollToSection("#events")}
             className="border-2 border-[#2F563B] text-[#2F563B] hover:bg-[#2F563B] hover:text-white rounded-xl px-8 py-6"
           >
             Lihat Program Kerja

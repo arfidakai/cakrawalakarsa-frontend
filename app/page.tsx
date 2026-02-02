@@ -14,14 +14,14 @@ export default function Page() {
       <Navbar />
       <main>
         <Hero />
-        <About />
-        <Events />
-        <Leadership />
+        <div id="about"><About /></div>
+        <div id="events"><Events /></div>
+        <div id="leadership"><Leadership /></div>
         <Divisions />
-        <News />
+        <div id="news"><News /></div>
         <Gallery />
+        <div id="contact"><Footer /></div>
       </main>
-      <Footer />
     </div>
   );
 }

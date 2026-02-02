@@ -18,6 +18,20 @@ export function Navbar() {
     { name: "Kontak", href: "#contact" }
   ];
 
+  const scrollToSection = (href: string) => {
+    if (href === "#") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    const element = document.querySelector(href);
+    if (element) {
+      const offset = 80; // navbar height
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+    }
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
       <div className="max-w-7xl mx-auto px-4">
@@ -37,19 +51,22 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link, index) => (
-              <a
+              <button
                 key={index}
-                href={link.href}
+                onClick={() => scrollToSection(link.href)}
                 className="text-[#5F5E5E] hover:text-[#166CB2] transition-colors"
               >
                 {link.name}
-              </a>
+              </button>
             ))}
           </div>
 
           {/* CTA Button - Desktop */}
           <div className="hidden md:block">
-            <Button className="bg-[#166CB2] hover:bg-[#166CB2]/90 text-white rounded-lg">
+            <Button 
+              onClick={() => scrollToSection("#contact")}
+              className="bg-[#166CB2] hover:bg-[#166CB2]/90 text-white rounded-lg"
+            >
               Aspirasi Mahasiswa
             </Button>
           </div>
@@ -68,16 +85,24 @@ export function Navbar() {
           <div className="md:hidden py-4 border-t">
             <div className="flex flex-col gap-4">
               {navLinks.map((link, index) => (
-                <a
+                <button
                   key={index}
-                  href={link.href}
-                  className="text-[#5F5E5E] hover:text-[#166CB2] transition-colors py-2"
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    scrollToSection(link.href);
+                    setIsOpen(false);
+                  }}
+                  className="text-[#5F5E5E] hover:text-[#166CB2] transition-colors py-2 text-left"
                 >
                   {link.name}
-                </a>
+                </button>
               ))}
-              <Button className="bg-[#166CB2] hover:bg-[#166CB2]/90 text-white rounded-lg w-full">
+              <Button 
+                onClick={() => {
+                  scrollToSection("#contact");
+                  setIsOpen(false);
+                }}
+                className="bg-[#166CB2] hover:bg-[#166CB2]/90 text-white rounded-lg w-full"
+              >
                 Aspirasi Mahasiswa
               </Button>
             </div>
